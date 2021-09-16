@@ -17,22 +17,27 @@ io.on('connection', (client) => {
             });
         }
 
+        // console.log('Datos del user:', user);
+
         client.join(user.sala);
 
         const users = usuarios.agregarPersona( client.id, user.nombre, user.sala );
 
         client.broadcast.to(user.sala).emit('listaPersona', usuarios.getPersonasPorSala(user.sala));
+        client.broadcast.to(user.sala).emit('crearMensaje', crearMensaje('Admin', `${user.nombre} se unió`));
 
-        callback( usuarios.getPersonasPorSala() );
+        callback( usuarios.getPersonasPorSala(user.sala) );
     });
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
 
         const persona = usuarios.getPersona(client.id);
 
         const mensaje = crearMensaje(persona.nombre, data.mensaje);
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+        
 
+        callback(mensaje);
     });
 
     client.on('mensajePrivado', (data) => {
